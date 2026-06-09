@@ -71,6 +71,12 @@ export default function ParentsPage() {
   const [linkCanPickup, setLinkCanPickup] = useState(true);
   const [linkSaving, setLinkSaving] = useState(false);
 
+  // Set portal password
+  const [passwordParent, setPasswordParent] = useState<Parent | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
   useEffect(() => { fetchParents(); fetchStudents(); }, []);
 
   const fetchParents = async () => {
@@ -208,6 +214,29 @@ export default function ParentsPage() {
       setShowLinkModal(false);
     } finally {
       setLinkSaving(false);
+    }
+  };
+
+  const openPasswordModal = (parent: Parent) => {
+    setPasswordParent(parent);
+    setNewPassword('');
+    setPasswordSuccess(false);
+  };
+
+  const handleSetPassword = async () => {
+    if (!passwordParent || !newPassword.trim()) return;
+    setPasswordSaving(true);
+    try {
+      const { error } = await supabase
+        .from('parents')
+        .update({ parent_password: newPassword.trim() })
+        .eq('id', passwordParent.id);
+      if (error) throw error;
+      setPasswordSuccess(true);
+    } catch (err: any) {
+      alert(err.message || 'Failed to set password.');
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -382,6 +411,11 @@ export default function ParentsPage() {
                   style={{ background: 'rgba(212,175,55,0.1)', color: '#B8860B' }}>
                   Edit
                 </button>
+                <button onClick={() => openPasswordModal(parent)}
+                  className="flex-1 text-xs py-2 rounded-xl font-semibold transition-all hover:-translate-y-0.5"
+                  style={{ background: 'rgba(37,99,235,0.08)', color: '#2563eb' }}>
+                  🔑 Set Password
+                </button>
                 <button onClick={() => handleDelete(parent.id)}
                   className="flex-1 text-xs py-2 rounded-xl font-semibold bg-red-50 text-red-500 hover:-translate-y-0.5 transition-all">
                   Delete
@@ -552,6 +586,91 @@ export default function ParentsPage() {
                 style={{ background: 'linear-gradient(135deg, #2c2c2c, #3a3a3a)', color: '#D4AF37', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
                 {saving ? 'Saving...' : editingParent ? 'Update Parent' : 'Add Parent'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Set Password Modal */}
+      {passwordParent && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm"
+            style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.4)' }}>
+
+            <div className="p-6 rounded-t-3xl" style={{ background: 'linear-gradient(135deg, #2c2c2c, #3a3a3a)' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                  style={{ background: 'linear-gradient(135deg, #D4AF37, #F5C842)', color: '#2c2c2c' }}>
+                  🔑
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-white">Set Portal Password</h2>
+                  <p className="text-gray-400 text-xs mt-0.5">
+                    {passwordParent.first_name} {passwordParent.last_name}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {!passwordSuccess ? (
+                <>
+                  <p className="text-sm text-gray-500">
+                    This password lets the parent log into the Parent Portal at <span className="font-mono text-gray-700">/parent-portal</span>.
+                  </p>
+                  {!passwordParent.email && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+                      ⚠️ This parent has no email address. Add an email first so they can log in.
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                      New Password
+                    </label>
+                    <input type="text" value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter a password for this parent"
+                      className={inputClass} style={inputStyle}
+                      onFocus={(e) => { e.target.style.borderColor = '#2563eb'; e.target.style.background = '#fff'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#f3f4f6'; e.target.style.background = '#f9fafb'; }}
+                    />
+                  </div>
+                  {passwordParent.email && (
+                    <div className="p-3 bg-gray-50 rounded-xl text-xs text-gray-500 space-y-0.5">
+                      <p><span className="font-semibold">Login email:</span> {passwordParent.email}</p>
+                      <p><span className="font-semibold">Password:</span> {newPassword || '(not set)'}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-4xl mb-3">✅</p>
+                  <p className="font-bold text-gray-800">Password Set!</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {passwordParent.first_name} can now log into the Parent Portal.
+                  </p>
+                  {passwordParent.email && (
+                    <div className="mt-3 p-3 bg-green-50 rounded-xl text-xs text-green-700 text-left space-y-0.5">
+                      <p><span className="font-semibold">Email:</span> {passwordParent.email}</p>
+                      <p><span className="font-semibold">Password:</span> {newPassword}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3 justify-end border-t border-gray-100 pt-4">
+              <button onClick={() => { setPasswordParent(null); setNewPassword(''); setPasswordSuccess(false); }}
+                className="px-5 py-2.5 text-sm text-gray-500 border-2 border-gray-100 rounded-xl hover:bg-gray-50 font-medium">
+                {passwordSuccess ? 'Close' : 'Cancel'}
+              </button>
+              {!passwordSuccess && (
+                <button onClick={handleSetPassword} disabled={passwordSaving || !newPassword.trim()}
+                  className="px-6 py-2.5 text-sm rounded-xl transition-all disabled:opacity-60 font-bold hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff', boxShadow: '0 4px 16px rgba(37,99,235,0.3)' }}>
+                  {passwordSaving ? 'Saving...' : 'Save Password'}
+                </button>
+              )}
             </div>
           </div>
         </div>

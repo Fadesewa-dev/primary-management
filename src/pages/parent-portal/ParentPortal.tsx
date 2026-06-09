@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
+const SESSION_KEY = 'gfa_parent_session';
+
 interface ParentInfo {
   id: string;
   first_name: string;
@@ -28,6 +30,9 @@ interface GradeRecord {
   subject: string;
   score: number;
   max_score: number;
+  ca1_score?: number;
+  ca2_score?: number;
+  exam_score?: number;
   grade_type: string;
   term: string;
   date: string;
@@ -46,22 +51,15 @@ const statusColors = {
   present: { color: '#16a34a', bg: 'rgba(22,163,74,0.1)', icon: '✅' },
   absent:  { color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  icon: '❌' },
   late:    { color: '#d97706', bg: 'rgba(217,119,6,0.1)',  icon: '⏰' },
-  excused: { color: '#2563eb', bg: 'rgba(37,99,235,0.1)',  icon: '📝' },
+  excused: { color: '#2563eb', bg: 'rgba(37,99,235,0.1)', icon: '📝' },
 };
 
-const gradeColor: Record<string, string> = {
-  'A+': '#16a34a', 'A': '#16a34a', 'B': '#2563eb',
-  'C': '#d97706', 'D': '#ea580c', 'F': '#ef4444',
-};
-
-const getGradeLabel = (score: number, max: number): string => {
-  const pct = (score / max) * 100;
-  if (pct >= 90) return 'A+';
-  if (pct >= 80) return 'A';
-  if (pct >= 70) return 'B';
-  if (pct >= 60) return 'C';
-  if (pct >= 50) return 'D';
-  return 'F';
+const getPSMSGrade = (total: number) => {
+  if (total >= 70) return { grade: 'A', color: '#16a34a' };
+  if (total >= 60) return { grade: 'B', color: '#2563eb' };
+  if (total >= 50) return { grade: 'C', color: '#d97706' };
+  if (total >= 40) return { grade: 'D', color: '#ea580c' };
+  return { grade: 'F', color: '#ef4444' };
 };
 
 const inputClass = "w-full border-2 border-gray-100 rounded-xl px-4 py-3 focus:outline-none transition-all bg-gray-50";
@@ -88,14 +86,6 @@ export default function ParentPortal() {
 
   useEffect(() => {
     checkSession();
-    supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        loadParentData(session.user.id);
-      } else {
-        setIsLoggedIn(false);
-        setLoading(false);
-      }
-    });
   }, []);
 
   useEffect(() => {
@@ -103,24 +93,30 @@ export default function ParentPortal() {
   }, [selectedStudent, activeTab]);
 
   const checkSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      await loadParentData(session.user.id);
-    } else {
-      setLoading(false);
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const session = JSON.parse(raw);
+        if (session?.parent_id) {
+          await loadParentData(session.parent_id);
+          return;
+        }
+      }
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
     }
+    setLoading(false);
   };
 
-  const loadParentData = async (userId: string) => {
-    const { data: parent } = await supabase
+  const loadParentData = async (parentId: string) => {
+    const { data: parent, error } = await supabase
       .from('parents')
-      .select('*')
-      .eq('auth_user_id', userId)
+      .select('id, first_name, last_name, email, phone')
+      .eq('id', parentId)
       .single();
 
-    if (!parent) {
-      setLoginError('No parent account found for this email. Please contact the school.');
-      await supabase.auth.signOut();
+    if (error || !parent) {
+      localStorage.removeItem(SESSION_KEY);
       setLoading(false);
       return;
     }
@@ -148,31 +144,51 @@ export default function ParentPortal() {
     setLoading(false);
   };
 
- const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
     setLoginError('');
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
-      });
-      if (error) throw error;
-      if (data?.user) {
-        await loadParentData(data.user.id);
+      const { data: parent, error } = await supabase
+        .from('parents')
+        .select('id, first_name, last_name, email, phone, parent_password')
+        .eq('email', email.trim().toLowerCase())
+        .single();
+
+      if (error || !parent) {
+        setLoginError('No account found with that email. Contact the school office.');
+        setLoginLoading(false);
+        return;
       }
-    } catch (err: any) {
-      setLoginError(err.message || 'Invalid email or password');
+
+      if (!parent.parent_password) {
+        setLoginError('Portal access not set up yet. Ask the school to set your password.');
+        setLoginLoading(false);
+        return;
+      }
+
+      if (parent.parent_password !== password) {
+        setLoginError('Incorrect password. Please try again.');
+        setLoginLoading(false);
+        return;
+      }
+
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ parent_id: parent.id }));
+      await loadParentData(parent.id);
+    } catch {
+      setLoginError('Something went wrong. Please try again.');
       setLoginLoading(false);
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    localStorage.removeItem(SESSION_KEY);
     setIsLoggedIn(false);
     setParentInfo(null);
     setStudents([]);
     setSelectedStudent(null);
+    setEmail('');
+    setPassword('');
   };
 
   const loadStudentData = async (studentId: string) => {
@@ -190,7 +206,7 @@ export default function ParentPortal() {
       if (activeTab === 'grades') {
         const { data } = await supabase
           .from('grades')
-          .select('subject, score, max_score, grade_type, term, date')
+          .select('subject, score, max_score, ca1_score, ca2_score, exam_score, grade_type, term, date')
           .eq('student_id', studentId)
           .order('date', { ascending: false });
         setGrades(data || []);
@@ -231,7 +247,6 @@ export default function ParentPortal() {
       <div className="min-h-screen flex items-center justify-center p-4"
         style={{ background: 'linear-gradient(135deg, #2c2c2c 0%, #3a3a3a 50%, #454545 100%)' }}>
         <div className="w-full max-w-sm">
-          {/* Logo */}
           <div className="text-center mb-8">
             <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4"
               style={{ border: '3px solid rgba(212,175,55,0.6)', boxShadow: '0 8px 32px rgba(212,175,55,0.3)' }}>
@@ -241,7 +256,6 @@ export default function ParentPortal() {
             <p className="text-sm mt-1" style={{ color: '#D4AF37' }}>Glowing Future Academy</p>
           </div>
 
-          {/* Login Card */}
           <div className="bg-white rounded-3xl p-8" style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.4)' }}>
             <h2 className="text-xl font-black text-gray-900 mb-1">Welcome Back</h2>
             <p className="text-sm text-gray-400 mb-6">Sign in to view your child's progress</p>
@@ -368,7 +382,6 @@ export default function ParentPortal() {
                 </div>
               </div>
 
-              {/* Quick Stats */}
               <div className="grid grid-cols-3 gap-3 mt-4">
                 <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
                   <p className="text-lg font-black" style={{ color: attPct >= 75 ? '#4ade80' : '#fbbf24' }}>{attPct}%</p>
@@ -428,7 +441,6 @@ export default function ParentPortal() {
                         <h3 className="font-black text-white">Attendance Record</h3>
                         <p className="text-xs text-gray-400 mt-0.5">Last 30 records</p>
                       </div>
-                      {/* Summary */}
                       <div className="grid grid-cols-4 gap-2 p-4 border-b border-gray-50">
                         {[
                           { label: 'Present', value: attStats.present, color: '#16a34a' },
@@ -484,22 +496,34 @@ export default function ParentPortal() {
                       ) : (
                         <div className="divide-y divide-gray-50">
                           {grades.map((g, idx) => {
-                            const label = getGradeLabel(g.score, g.max_score);
-                            const pct = Math.round((g.score / g.max_score) * 100);
+                            const { grade, color } = getPSMSGrade(g.score);
                             return (
-                              <div key={idx} className="px-4 py-3 flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-semibold text-gray-800">{g.subject}</p>
-                                  <p className="text-xs text-gray-400 mt-0.5 capitalize">
-                                    {g.grade_type} · {g.term}
-                                  </p>
+                              <div key={idx} className="px-4 py-3">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-800">{g.subject}</p>
+                                    <p className="text-xs text-gray-400 mt-0.5 capitalize">
+                                      {g.grade_type} · {g.term}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-lg font-black" style={{ color }}>{grade}</p>
+                                    <p className="text-xs text-gray-500 font-bold">{g.score}/100</p>
+                                  </div>
                                 </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-black" style={{ color: gradeColor[label] }}>
-                                    {label} ({pct}%)
-                                  </p>
-                                  <p className="text-xs text-gray-400">{g.score}/{g.max_score}</p>
-                                </div>
+                                {(g.ca1_score !== undefined || g.ca2_score !== undefined) && (
+                                  <div className="flex gap-3 mt-2">
+                                    {[
+                                      { label: 'CA1', val: g.ca1_score, max: 20 },
+                                      { label: 'CA2', val: g.ca2_score, max: 20 },
+                                      { label: 'Exam', val: g.exam_score, max: 60 },
+                                    ].map(({ label, val, max }) => (
+                                      <span key={label} className="text-xs px-2 py-0.5 rounded-lg bg-gray-50 text-gray-500">
+                                        {label}: <span className="font-bold text-gray-700">{val ?? '—'}/{max}</span>
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -516,7 +540,6 @@ export default function ParentPortal() {
                         <h3 className="font-black text-white">Fee Status</h3>
                         <p className="text-xs text-gray-400 mt-0.5">Payment summary</p>
                       </div>
-                      {/* Fee Summary */}
                       <div className="grid grid-cols-3 gap-2 p-4 border-b border-gray-50">
                         {[
                           { label: 'Total Fees', value: `D ${totalFees.toLocaleString()}`,  color: '#2c2c2c' },
