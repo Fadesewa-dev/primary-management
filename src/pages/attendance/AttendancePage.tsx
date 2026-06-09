@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import BiometricModal from '../../components/shared/BiometricModal';
 
 interface Student {
   id: string;
@@ -45,6 +46,7 @@ export default function AttendancePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [showBiometric, setShowBiometric] = useState(false);
 
   useEffect(() => { fetchClasses(); }, []);
   useEffect(() => { if (selectedClass) fetchStudentsAndAttendance(); }, [selectedClass, selectedDate]);
@@ -342,6 +344,16 @@ export default function AttendancePage() {
                       style={{ fontSize: '12px', color: record?.dismissal_time ? '#7c3aed' : '#9ca3af' }}
                     />
                   </div>
+
+                  {/* Fingerprint Placeholder */}
+                  <button onClick={() => setShowBiometric(true)}
+                    className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all hover:-translate-y-0.5 flex-shrink-0"
+                    style={{ background: 'rgba(107,114,128,0.08)', color: '#6b7280', border: '1px solid rgba(107,114,128,0.15)' }}>
+                    <span>🫆</span>
+                    <span className="hidden xl:inline">Fingerprint</span>
+                    <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
+                      style={{ background: 'rgba(212,175,55,0.15)', color: '#B8860B' }}>P2</span>
+                  </button>
                 </div>
               );
             })}
@@ -364,6 +376,13 @@ export default function AttendancePage() {
             </button>
           </div>
         </div>
+      )}
+
+      {showBiometric && (
+        <BiometricModal
+          message="Biometric attendance coming in Phase 2. Currently using manual attendance."
+          onClose={() => setShowBiometric(false)}
+        />
       )}
     </div>
   );

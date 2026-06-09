@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { formatDate, getStatusColor } from '../../utils';
 import ReportCard from '../../components/students/ReportCard';
+import BiometricModal from '../../components/shared/BiometricModal';
 
 interface Student {
   id: string;
@@ -59,6 +60,7 @@ export default function StudentsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [reportCardStudent, setReportCardStudent] = useState<Student | null>(null);
+  const [showBiometric, setShowBiometric] = useState(false);
 
   useEffect(() => { fetchStudents(); fetchClasses(); }, []);
 
@@ -542,6 +544,25 @@ export default function StudentsPage() {
               </div>
             </div>
 
+            {/* Fingerprint Enrolment */}
+            <div className="px-6 pb-2">
+              <button onClick={() => setShowBiometric(true)}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all hover:-translate-y-0.5"
+                style={{ background: 'rgba(107,114,128,0.06)', border: '1px dashed rgba(107,114,128,0.25)' }}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🫆</span>
+                  <div className="text-left">
+                    <p className="text-sm font-bold text-gray-600">Enrol Fingerprint</p>
+                    <p className="text-xs text-gray-400">Register biometric for this student</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+                  style={{ background: 'rgba(212,175,55,0.12)', color: '#B8860B', border: '1px solid rgba(212,175,55,0.2)' }}>
+                  Phase 2
+                </span>
+              </button>
+            </div>
+
             <div className="px-6 pb-6 flex gap-3 justify-end border-t border-gray-100 pt-4">
               <button onClick={closeModal}
                 className="px-5 py-2.5 text-sm text-gray-500 hover:text-gray-700 border-2 border-gray-100 rounded-xl hover:bg-gray-50 transition-colors font-medium">
@@ -562,6 +583,13 @@ export default function StudentsPage() {
         <ReportCard
           student={reportCardStudent}
           onClose={() => setReportCardStudent(null)}
+        />
+      )}
+
+      {showBiometric && (
+        <BiometricModal
+          message="Fingerprint enrolment coming in Phase 2."
+          onClose={() => setShowBiometric(false)}
         />
       )}
     </div>

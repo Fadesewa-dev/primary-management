@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import BiometricModal from '../../components/shared/BiometricModal';
 
 interface Student {
   id: string;
@@ -53,6 +54,7 @@ export default function PickupLogPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(emptyForm);
+  const [showBiometric, setShowBiometric] = useState(false);
 
   useEffect(() => {
     fetchLogs();
@@ -167,11 +169,21 @@ export default function PickupLogPage() {
             Track student pickups for safety and audit
           </p>
         </div>
-        <button onClick={openModal}
-          className="relative z-10 px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5"
-          style={{ background: 'linear-gradient(135deg, #D4AF37, #F5C842)', color: '#2c2c2c', boxShadow: '0 4px 16px rgba(212,175,55,0.4)' }}>
-          + Log Pickup
-        </button>
+        <div className="relative z-10 flex items-center gap-2">
+          <button onClick={() => setShowBiometric(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5"
+            style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <span>🫆</span>
+            <span className="hidden md:inline">Verify Fingerprint</span>
+            <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
+              style={{ background: 'rgba(212,175,55,0.2)', color: '#D4AF37' }}>P2</span>
+          </button>
+          <button onClick={openModal}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5"
+            style={{ background: 'linear-gradient(135deg, #D4AF37, #F5C842)', color: '#2c2c2c', boxShadow: '0 4px 16px rgba(212,175,55,0.4)' }}>
+            + Log Pickup
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -410,6 +422,13 @@ export default function PickupLogPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {showBiometric && (
+        <BiometricModal
+          message="Biometric verification coming in Phase 2. Currently using manual verification."
+          onClose={() => setShowBiometric(false)}
+        />
       )}
     </div>
   );

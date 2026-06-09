@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import BiometricModal from '../../components/shared/BiometricModal';
 //import { formatDate } from '../../utils';
 
 interface Parent {
@@ -76,6 +77,9 @@ export default function ParentsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  // Biometric placeholder
+  const [showBiometric, setShowBiometric] = useState(false);
 
   useEffect(() => { fetchParents(); fetchStudents(); }, []);
 
@@ -405,20 +409,34 @@ export default function ParentsPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
-                <button onClick={() => openEditModal(parent)}
-                  className="flex-1 text-xs py-2 rounded-xl font-semibold transition-all hover:-translate-y-0.5"
-                  style={{ background: 'rgba(212,175,55,0.1)', color: '#B8860B' }}>
-                  Edit
-                </button>
-                <button onClick={() => openPasswordModal(parent)}
-                  className="flex-1 text-xs py-2 rounded-xl font-semibold transition-all hover:-translate-y-0.5"
-                  style={{ background: 'rgba(37,99,235,0.08)', color: '#2563eb' }}>
-                  🔑 Set Password
-                </button>
-                <button onClick={() => handleDelete(parent.id)}
-                  className="flex-1 text-xs py-2 rounded-xl font-semibold bg-red-50 text-red-500 hover:-translate-y-0.5 transition-all">
-                  Delete
+              <div className="space-y-2 pt-3 border-t border-gray-100">
+                <div className="flex gap-2">
+                  <button onClick={() => openEditModal(parent)}
+                    className="flex-1 text-xs py-2 rounded-xl font-semibold transition-all hover:-translate-y-0.5"
+                    style={{ background: 'rgba(212,175,55,0.1)', color: '#B8860B' }}>
+                    Edit
+                  </button>
+                  <button onClick={() => openPasswordModal(parent)}
+                    className="flex-1 text-xs py-2 rounded-xl font-semibold transition-all hover:-translate-y-0.5"
+                    style={{ background: 'rgba(37,99,235,0.08)', color: '#2563eb' }}>
+                    🔑 Set Password
+                  </button>
+                  <button onClick={() => handleDelete(parent.id)}
+                    className="flex-1 text-xs py-2 rounded-xl font-semibold bg-red-50 text-red-500 hover:-translate-y-0.5 transition-all">
+                    Delete
+                  </button>
+                </div>
+                <button onClick={() => setShowBiometric(true)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all hover:-translate-y-0.5"
+                  style={{ background: 'rgba(107,114,128,0.06)', border: '1px dashed rgba(107,114,128,0.2)' }}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🫆</span>
+                    <span className="text-xs font-semibold text-gray-500">Enrol Fingerprint</span>
+                  </div>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(212,175,55,0.12)', color: '#B8860B', border: '1px solid rgba(212,175,55,0.2)' }}>
+                    Phase 2
+                  </span>
                 </button>
               </div>
             </div>
@@ -674,6 +692,14 @@ export default function ParentsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Biometric Placeholder Modal */}
+      {showBiometric && (
+        <BiometricModal
+          message="Parent fingerprint enrolment coming in Phase 2. This will be used for pickup verification."
+          onClose={() => setShowBiometric(false)}
+        />
       )}
 
       {/* Link Student Modal */}
