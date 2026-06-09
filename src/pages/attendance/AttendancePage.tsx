@@ -42,7 +42,6 @@ export default function AttendancePage() {
   const [attendance, setAttendance] = useState<Record<string, AttendanceRecord>>({});
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -98,13 +97,6 @@ export default function AttendancePage() {
       [studentId]: { ...prev[studentId], status },
     }));
     setSaved(false);
-  };
-
-  const setNote = (studentId: string, note: string) => {
-    setAttendance((prev) => ({
-      ...prev,
-      [studentId]: { ...prev[studentId], note },
-    }));
   };
 
   const setDismissalTime = (studentId: string, dismissal_time: string) => {

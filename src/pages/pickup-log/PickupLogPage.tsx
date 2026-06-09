@@ -6,7 +6,7 @@ interface Student {
   first_name: string;
   last_name: string;
   student_id: string;
-  classes?: { name: string };
+  classes?: { name: string } | { name: string }[];
 }
 
 interface Parent {
@@ -317,7 +317,7 @@ export default function PickupLogPage() {
                   <option value="">-- Select Student --</option>
                   {students.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.first_name} {s.last_name} ({s.student_id}){s.classes?.name ? ` · ${s.classes.name}` : ''}
+                      {s.first_name} {s.last_name} ({s.student_id}){s.classes && !Array.isArray(s.classes) ? ` · ${s.classes.name}` : ''}
                     </option>
                   ))}
                 </select>
