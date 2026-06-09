@@ -1,0 +1,1 @@
+Add blood group, allergies and medical notes to student form. Add teacher remarks to grades. Add dismissal time and Mark All Dismissed button to attendance page. Highlight attendance below 75% in red on reports. Add class position ranking on report cards. Database columns already added.
