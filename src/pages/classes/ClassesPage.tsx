@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { GRADE_LEVELS, SECTIONS, CURRENT_ACADEMIC_YEAR } from '../../lib/constants';
+import { CURRENT_ACADEMIC_YEAR } from '../../lib/constants';
 
 interface Class {
   id: string;
@@ -22,9 +22,12 @@ interface Teacher {
   staff_id: string;
 }
 
+interface GradeLevel { id: string; name: string; level_order: number }
+interface ClassSection { id: string; name: string }
+
 const emptyForm = {
-  grade: 'Grade 1',
-  section: 'A',
+  grade: '',
+  section: '',
   teacher_id: '',
   academic_year: CURRENT_ACADEMIC_YEAR,
   capacity: 35,
@@ -33,6 +36,8 @@ const emptyForm = {
 export default function ClassesPage() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
+  const [sections, setSections] = useState<ClassSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
@@ -41,7 +46,7 @@ export default function ClassesPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
 
-  useEffect(() => { fetchClasses(); fetchTeachers(); }, []);
+  useEffect(() => { fetchClasses(); fetchTeachers(); fetchGradeLevels(); fetchSections(); }, []);
 
   const fetchClasses = async () => {
     setLoading(true);
@@ -75,9 +80,23 @@ export default function ClassesPage() {
     setTeachers(data || []);
   };
 
+  const fetchGradeLevels = async () => {
+    const { data } = await supabase.from('grade_levels').select('id, name, level_order').order('level_order');
+    setGradeLevels(data || []);
+  };
+
+  const fetchSections = async () => {
+    const { data } = await supabase.from('class_sections').select('id, name').order('name');
+    setSections(data || []);
+  };
+
   const openAddModal = () => {
     setEditingClass(null);
-    setForm(emptyForm);
+    setForm({
+      ...emptyForm,
+      grade: gradeLevels[0]?.name || '',
+      section: sections[0]?.name || '',
+    });
     setError('');
     setShowModal(true);
   };
@@ -313,15 +332,17 @@ export default function ClassesPage() {
                 <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Grade</label>
                   <select value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })}
-                    className="w-full border-2 border-gray-100 rounded-xl px-3 py-3.5 text-base focus:outline-none bg-gray-50">
-                    {GRADE_LEVELS.map((g) => <option key={g} value={g}>{g}</option>)}
+                    className="w-full border-2 border-gray-100 rounded-xl px-3 py-3.5 text-base focus:outline-none bg-gray-50"
+                    style={{ fontSize: '16px' }}>
+                    {gradeLevels.map((g) => <option key={g.id} value={g.name}>{g.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Section</label>
                   <select value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })}
-                    className="w-full border-2 border-gray-100 rounded-xl px-3 py-3.5 text-base focus:outline-none bg-gray-50">
-                    {SECTIONS.map((s) => <option key={s} value={s}>Section {s}</option>)}
+                    className="w-full border-2 border-gray-100 rounded-xl px-3 py-3.5 text-base focus:outline-none bg-gray-50"
+                    style={{ fontSize: '16px' }}>
+                    {sections.map((s) => <option key={s.id} value={s.name}>Section {s.name}</option>)}
                   </select>
                 </div>
               </div>

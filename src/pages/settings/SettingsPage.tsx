@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { GRADE_LEVELS, SECTIONS } from '../../lib/constants';
 
 interface Subject {
   id: string;
@@ -15,6 +14,19 @@ interface AcademicYear {
   start_date: string;
   end_date: string;
   is_current: boolean;
+}
+
+interface GradeLevel {
+  id: string;
+  name: string;
+  level_order: number;
+  is_active: boolean;
+}
+
+interface ClassSection {
+  id: string;
+  name: string;
+  is_active: boolean;
 }
 
 const inputClass = "w-full border-2 border-gray-100 rounded-xl px-3 py-2.5 focus:outline-none bg-gray-50 transition-all";
@@ -50,9 +62,21 @@ export default function SettingsPage() {
   const [newSubjectDesc, setNewSubjectDesc] = useState('');
   const [savingSubject, setSavingSubject] = useState(false);
 
+  // Grade Levels
+  const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
+  const [newGradeLevel, setNewGradeLevel] = useState('');
+  const [savingGrade, setSavingGrade] = useState(false);
+
+  // Class Sections
+  const [classSections, setClassSections] = useState<ClassSection[]>([]);
+  const [newSection, setNewSection] = useState('');
+  const [savingSection, setSavingSection] = useState(false);
+
   useEffect(() => {
     fetchAcademicYears();
     fetchSubjects();
+    fetchGradeLevels();
+    fetchClassSections();
     loadSchoolProfile();
   }, []);
 
@@ -144,6 +168,66 @@ export default function SettingsPage() {
     if (!confirm('Delete this subject?')) return;
     await supabase.from('subjects').delete().eq('id', id);
     await fetchSubjects();
+  };
+
+  const fetchGradeLevels = async () => {
+    const { data } = await supabase.from('grade_levels').select('*').order('level_order');
+    setGradeLevels(data || []);
+  };
+
+  const fetchClassSections = async () => {
+    const { data } = await supabase.from('class_sections').select('*').order('name');
+    setClassSections(data || []);
+  };
+
+  const addGradeLevel = async () => {
+    if (!newGradeLevel.trim()) return;
+    setSavingGrade(true);
+    try {
+      const nextOrder = gradeLevels.length > 0
+        ? Math.max(...gradeLevels.map((g) => g.level_order)) + 1
+        : 1;
+      const { error } = await supabase.from('grade_levels').insert({
+        name: newGradeLevel.trim(),
+        level_order: nextOrder,
+        is_active: true,
+      });
+      if (!error) {
+        setNewGradeLevel('');
+        await fetchGradeLevels();
+      }
+    } finally {
+      setSavingGrade(false);
+    }
+  };
+
+  const deleteGradeLevel = async (id: string) => {
+    if (!confirm('Delete this grade level? This may affect existing classes.')) return;
+    await supabase.from('grade_levels').delete().eq('id', id);
+    await fetchGradeLevels();
+  };
+
+  const addSection = async () => {
+    if (!newSection.trim()) return;
+    setSavingSection(true);
+    try {
+      const { error } = await supabase.from('class_sections').insert({
+        name: newSection.trim().toUpperCase(),
+        is_active: true,
+      });
+      if (!error) {
+        setNewSection('');
+        await fetchClassSections();
+      }
+    } finally {
+      setSavingSection(false);
+    }
+  };
+
+  const deleteSection = async (id: string) => {
+    if (!confirm('Delete this section? This may affect existing classes.')) return;
+    await supabase.from('class_sections').delete().eq('id', id);
+    await fetchClassSections();
   };
 
   return (
@@ -471,53 +555,99 @@ export default function SettingsPage() {
           <div className="p-5 border-b border-gray-100"
             style={{ background: 'linear-gradient(135deg, #2c2c2c, #3a3a3a)' }}>
             <h2 className="font-black text-white">🏷️ Grade Levels & Sections</h2>
-            <p className="text-gray-400 text-xs mt-0.5">Reference for available grades and sections</p>
+            <p className="text-gray-400 text-xs mt-0.5">
+              {gradeLevels.length} grade levels · {classSections.length} sections — changes apply immediately to Classes page
+            </p>
           </div>
 
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Grade Levels */}
+
+            {/* ── Grade Levels ── */}
             <div>
               <p className="text-xs font-bold text-gray-600 mb-3 uppercase tracking-wide">Grade Levels</p>
+
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  value={newGradeLevel}
+                  onChange={(e) => setNewGradeLevel(e.target.value)}
+                  placeholder="e.g. Grade 7, KG1, Nursery"
+                  className={`flex-1 ${inputClass}`}
+                  style={inputStyle}
+                  onKeyDown={(e) => { if (e.key === 'Enter') addGradeLevel(); }}
+                  onFocus={(e) => { e.target.style.borderColor = '#D4AF37'; e.target.style.background = '#fff'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#f3f4f6'; e.target.style.background = '#f9fafb'; }}
+                />
+                <button onClick={addGradeLevel} disabled={savingGrade || !newGradeLevel.trim()}
+                  className="px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50 hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg, #D4AF37, #F5C842)', color: '#2c2c2c', boxShadow: '0 4px 16px rgba(212,175,55,0.3)', whiteSpace: 'nowrap' }}>
+                  {savingGrade ? '...' : '+ Add'}
+                </button>
+              </div>
+
               <div className="space-y-2">
-                {GRADE_LEVELS.map((grade, idx) => (
-                  <div key={grade} className="flex items-center gap-3 p-3 rounded-xl"
+                {gradeLevels.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-8">No grade levels yet</p>
+                ) : gradeLevels.map((grade, idx) => (
+                  <div key={grade.id} className="flex items-center gap-3 p-3 rounded-xl"
                     style={{ background: idx % 2 === 0 ? '#f9fafb' : '#fff', border: '1px solid rgba(0,0,0,0.05)' }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black"
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg, #2c2c2c, #3a3a3a)', color: '#D4AF37' }}>
-                      {idx + 1}
+                      {grade.level_order}
                     </div>
-                    <span className="text-sm font-semibold text-gray-700">{grade}</span>
+                    <span className="flex-1 text-sm font-semibold text-gray-700">{grade.name}</span>
+                    <button onClick={() => deleteGradeLevel(grade.id)}
+                      className="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100 transition-all flex-shrink-0">
+                      Delete
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Sections */}
+            {/* ── Class Sections ── */}
             <div>
               <p className="text-xs font-bold text-gray-600 mb-3 uppercase tracking-wide">Class Sections</p>
+
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  value={newSection}
+                  onChange={(e) => setNewSection(e.target.value)}
+                  placeholder="e.g. E, F, Gold, Blue"
+                  className={`flex-1 ${inputClass}`}
+                  style={inputStyle}
+                  onKeyDown={(e) => { if (e.key === 'Enter') addSection(); }}
+                  onFocus={(e) => { e.target.style.borderColor = '#D4AF37'; e.target.style.background = '#fff'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#f3f4f6'; e.target.style.background = '#f9fafb'; }}
+                />
+                <button onClick={addSection} disabled={savingSection || !newSection.trim()}
+                  className="px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50 hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg, #D4AF37, #F5C842)', color: '#2c2c2c', boxShadow: '0 4px 16px rgba(212,175,55,0.3)', whiteSpace: 'nowrap' }}>
+                  {savingSection ? '...' : '+ Add'}
+                </button>
+              </div>
+
               <div className="space-y-2">
-                {SECTIONS.map((section, idx) => (
-                  <div key={section} className="flex items-center gap-3 p-3 rounded-xl"
+                {classSections.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-8">No sections yet</p>
+                ) : classSections.map((section, idx) => (
+                  <div key={section.id} className="flex items-center gap-3 p-3 rounded-xl"
                     style={{ background: idx % 2 === 0 ? '#f9fafb' : '#fff', border: '1px solid rgba(0,0,0,0.05)' }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black"
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg, #D4AF37, #F5C842)', color: '#2c2c2c' }}>
-                      {section}
+                      {section.name}
                     </div>
-                    <span className="text-sm font-semibold text-gray-700">Section {section}</span>
+                    <span className="flex-1 text-sm font-semibold text-gray-700">Section {section.name}</span>
+                    <button onClick={() => deleteSection(section.id)}
+                      className="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100 transition-all flex-shrink-0">
+                      Delete
+                    </button>
                   </div>
                 ))}
               </div>
-
-              <div className="mt-6 p-4 rounded-xl"
-                style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)' }}>
-                <p className="text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Note</p>
-                <p className="text-xs text-gray-500">
-                  To add new grade levels or sections, update the constants file
-                  at <span className="font-mono text-gray-700">src/lib/constants.ts</span> or
-                  contact your system developer.
-                </p>
-              </div>
             </div>
+
           </div>
         </div>
       )}
