@@ -26,6 +26,7 @@ const emptyForm = {
   student_id: '',
   class_id: '',
   subject: 'Mathematics',
+  grade_type: 'exam' as string,
   ca1_score: 0,
   ca2_score: 0,
   exam_score: 0,
@@ -34,6 +35,13 @@ const emptyForm = {
   date: new Date().toISOString().split('T')[0],
   teacher_remark: '',
 };
+
+const ASSESSMENT_TYPES = [
+  { value: 'exam',       label: 'Exam' },
+  { value: 'assignment', label: 'Assignment' },
+  { value: 'quiz',       label: 'Quiz' },
+  { value: 'project',   label: 'Project' },
+];
 
 const getPSMSGrade = (total: number) => {
   if (total >= 70) return { grade: 'A', remark: 'Excellent', color: '#16a34a', bg: 'rgba(22,163,74,0.1)' };
@@ -128,20 +136,28 @@ export default function GradesPage() {
       return;
     }
 
+    // Resolve class_id from selected student if filter was left on "All Classes"
+    const resolvedClassId = form.class_id ||
+      allStudents.find((s) => s.id === form.student_id)?.class_id || '';
+    if (!resolvedClassId) {
+      setError('Could not determine class. Please select a class filter first.');
+      return;
+    }
+
     setSaving(true);
     setError('');
     try {
       const total = form.ca1_score + form.ca2_score + form.exam_score;
       const { error } = await supabase.from('grades').insert({
         student_id: form.student_id,
-        class_id: form.class_id,
+        class_id: resolvedClassId,
         subject: form.subject,
         ca1_score: form.ca1_score,
         ca2_score: form.ca2_score,
         exam_score: form.exam_score,
         score: total,
         max_score: 100,
-        grade_type: 'exam',
+        grade_type: form.grade_type,
         term: form.term,
         academic_year: form.academic_year,
         date: form.date,
@@ -362,15 +378,22 @@ export default function GradesPage() {
             style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.4)' }}>
 
             <div className="p-6 rounded-t-3xl" style={{ background: 'linear-gradient(135deg, #2c2c2c, #3a3a3a)' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                  style={{ background: 'linear-gradient(135deg, #D4AF37, #F5C842)', color: '#2c2c2c' }}>
-                  📊
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                    style={{ background: 'linear-gradient(135deg, #D4AF37, #F5C842)', color: '#2c2c2c' }}>
+                    📊
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-white">Add Grade Record</h2>
+                    <p className="text-gray-400 text-xs mt-0.5">CA1 + CA2 + Exam breakdown</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-black text-white">Add Grade Record</h2>
-                  <p className="text-gray-400 text-xs mt-0.5">CA1 + CA2 + Exam breakdown</p>
-                </div>
+                <button onClick={closeModal}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                  style={{ background: 'rgba(255,255,255,0.08)' }}>
+                  ✕
+                </button>
               </div>
             </div>
 
@@ -422,11 +445,33 @@ export default function GradesPage() {
                   </select>
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                    Assessment Type <span className="text-red-400">*</span>
+                  </label>
+                  <select value={form.grade_type}
+                    onChange={(e) => setForm({ ...form, grade_type: e.target.value })}
+                    className={inputClass} style={inputStyle}>
+                    {ASSESSMENT_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Term</label>
                   <select value={form.term} onChange={(e) => setForm({ ...form, term: e.target.value })}
                     className={inputClass} style={inputStyle}>
                     {ACADEMIC_TERMS.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Academic Year</label>
+                  <input type="text" value={form.academic_year}
+                    onChange={(e) => setForm({ ...form, academic_year: e.target.value })}
+                    placeholder="e.g. 2025/2026"
+                    className={inputClass} style={inputStyle} />
                 </div>
               </div>
 
@@ -456,6 +501,15 @@ export default function GradesPage() {
                     onChange={(e) => setForm({ ...form, exam_score: Math.min(60, Math.max(0, parseFloat(e.target.value) || 0)) })}
                     className={inputClass} style={inputStyle} />
                 </div>
+              </div>
+
+              {/* Total Score (read-only) */}
+              <div className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: 'rgba(44,44,44,0.04)', border: '1px solid rgba(0,0,0,0.08)' }}>
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Total Score</span>
+                <span className="ml-auto text-xl font-black" style={{ color: preview.color }}>
+                  {total} <span className="text-sm font-semibold text-gray-400">/ 100</span>
+                </span>
               </div>
 
               <div>
