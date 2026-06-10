@@ -4,10 +4,12 @@ import MainLayout from '../components/layout/MainLayout';
 
 const Loader = () => (
   <div className="flex h-screen items-center justify-center bg-gray-50">
-    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+    <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto"
+      style={{ borderColor: '#D4AF37', borderTopColor: 'transparent' }}></div>
   </div>
 );
 
+const LandingPage    = lazy(() => import('../pages/landing/LandingPage'));
 const LoginPage      = lazy(() => import('../pages/auth/LoginPage'));
 const DashboardPage  = lazy(() => import('../pages/dashboard/DashboardPage'));
 const StudentsPage   = lazy(() => import('../pages/students/StudentsPage'));
@@ -21,38 +23,48 @@ const EventsPage     = lazy(() => import('../pages/events/EventsPage'));
 const ReportsPage    = lazy(() => import('../pages/reports/ReportsPage'));
 const SettingsPage   = lazy(() => import('../pages/settings/SettingsPage'));
 const ParentsPage    = lazy(() => import('../pages/parents/ParentsPage'));
-const ParentPortal = lazy(() => import('../pages/parent-portal/ParentPortal'));
-const PickupLogPage = lazy(() => import('../pages/pickup-log/PickupLogPage'));
+const ParentPortal   = lazy(() => import('../pages/parent-portal/ParentPortal'));
+const PickupLogPage  = lazy(() => import('../pages/pickup-log/PickupLogPage'));
+
+const wrap = (Page: React.ComponentType) => (
+  <Suspense fallback={<Loader />}><Page /></Suspense>
+);
 
 export const router = createBrowserRouter([
   {
-    path: '/login',
-    element: <Suspense fallback={<Loader />}><LoginPage /></Suspense>,
+    path: '/',
+    element: wrap(LandingPage),
   },
-  
+  {
+    path: '/login',
+    element: wrap(LoginPage),
+  },
   {
     path: '/parent-portal',
-    element: <Suspense fallback={<Loader />}><ParentPortal /></Suspense>,
+    element: wrap(ParentPortal),
   },
-
   {
-    path: '/',
+    path: '/dashboard',
     element: <MainLayout />,
     children: [
-      { index: true,        element: <Suspense fallback={<Loader />}><DashboardPage /></Suspense>  },
-      { path: 'students',   element: <Suspense fallback={<Loader />}><StudentsPage /></Suspense>   },
-      { path: 'teachers',   element: <Suspense fallback={<Loader />}><TeachersPage /></Suspense>   },
-      { path: 'classes',    element: <Suspense fallback={<Loader />}><ClassesPage /></Suspense>    },
-      { path: 'attendance', element: <Suspense fallback={<Loader />}><AttendancePage /></Suspense> },
-      { path: 'grades',     element: <Suspense fallback={<Loader />}><GradesPage /></Suspense>     },
-      { path: 'fees',       element: <Suspense fallback={<Loader />}><FeesPage /></Suspense>       },
-      { path: 'library',    element: <Suspense fallback={<Loader />}><LibraryPage /></Suspense>    },
-      { path: 'events',     element: <Suspense fallback={<Loader />}><EventsPage /></Suspense>     },
-      { path: 'reports',    element: <Suspense fallback={<Loader />}><ReportsPage /></Suspense>    },
-      { path: 'settings',   element: <Suspense fallback={<Loader />}><SettingsPage /></Suspense>   },
-      { path: 'parents',     element: <Suspense fallback={<Loader />}><ParentsPage /></Suspense> },
-      { path: 'pickup-log', element: <Suspense fallback={<Loader />}><PickupLogPage /></Suspense> },
-      { path: '*',          element: <Navigate to="/" replace /> },
+      { index: true,        element: wrap(DashboardPage)  },
+      { path: 'students',   element: wrap(StudentsPage)   },
+      { path: 'teachers',   element: wrap(TeachersPage)   },
+      { path: 'classes',    element: wrap(ClassesPage)    },
+      { path: 'attendance', element: wrap(AttendancePage) },
+      { path: 'grades',     element: wrap(GradesPage)     },
+      { path: 'fees',       element: wrap(FeesPage)       },
+      { path: 'library',    element: wrap(LibraryPage)    },
+      { path: 'events',     element: wrap(EventsPage)     },
+      { path: 'reports',    element: wrap(ReportsPage)    },
+      { path: 'settings',   element: wrap(SettingsPage)   },
+      { path: 'parents',    element: wrap(ParentsPage)    },
+      { path: 'pickup-log', element: wrap(PickupLogPage)  },
+      { path: '*',          element: <Navigate to="/dashboard" replace /> },
     ],
+  },
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
   },
 ]);

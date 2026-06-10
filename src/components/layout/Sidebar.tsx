@@ -6,19 +6,19 @@ type SidebarProps = {
 };
 
 const navItems = [
-  { to: '/',           label: 'Dashboard',  emoji: '🏠' },
-  { to: '/students',   label: 'Students',   emoji: '🎓' },
-  { to: '/teachers',   label: 'Teachers',   emoji: '📋' },
-  { to: '/classes',    label: 'Classes',    emoji: '📚' },
-  { to: '/attendance', label: 'Attendance', emoji: '✅' },
-  { to: '/grades',     label: 'Grades',     emoji: '📊' },
-  { to: '/parents',     label: 'Parents',     emoji: '👨‍👩‍👧' },
-  { to: '/pickup-log', label: 'Pickup Log',  emoji: '🚗' },
-  { to: '/fees',       label: 'Fees',        emoji: '💳' },
-  { to: '/library',    label: 'Library',    emoji: '📖' },
-  { to: '/events',     label: 'Events',     emoji: '📅' },
-  { to: '/reports',    label: 'Reports',    emoji: '📋' },
-  { to: '/settings',   label: 'Settings',   emoji: '⚙️'  },
+  { to: '/dashboard',            label: 'Dashboard',  emoji: '🏠' },
+  { to: '/dashboard/students',   label: 'Students',   emoji: '🎓' },
+  { to: '/dashboard/teachers',   label: 'Teachers',   emoji: '📋' },
+  { to: '/dashboard/classes',    label: 'Classes',    emoji: '📚' },
+  { to: '/dashboard/attendance', label: 'Attendance', emoji: '✅' },
+  { to: '/dashboard/grades',     label: 'Grades',     emoji: '📊' },
+  { to: '/dashboard/parents',    label: 'Parents',    emoji: '👨‍👩‍👧' },
+  { to: '/dashboard/pickup-log', label: 'Pickup Log', emoji: '🚗' },
+  { to: '/dashboard/fees',       label: 'Fees',       emoji: '💳' },
+  { to: '/dashboard/library',    label: 'Library',    emoji: '📖' },
+  { to: '/dashboard/events',     label: 'Events',     emoji: '📅' },
+  { to: '/dashboard/reports',    label: 'Reports',    emoji: '📋' },
+  { to: '/dashboard/settings',   label: 'Settings',   emoji: '⚙️'  },
 ];
 
 export default function Sidebar({ setSidebarOpen }: SidebarProps) {
@@ -74,7 +74,7 @@ export default function Sidebar({ setSidebarOpen }: SidebarProps) {
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end={to === '/dashboard'}
             onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
