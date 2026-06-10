@@ -14,28 +14,34 @@ const features = [
 
 const slides = [
   {
-    url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1200&h=600&q=80',
-    tag: 'World-Class Learning',
-    title: 'Glowing Future Academy',
-    subtitle: 'Empowering young minds for a brighter tomorrow',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&w=1200&h=600&q=80',
-    tag: 'Student Excellence',
-    title: 'Our Students, Our Pride',
-    subtitle: 'Nurturing every child\'s unique potential every day',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&h=600&q=80',
+    url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&auto=format&fit=crop&h=600&q=80',
     tag: 'Glowing Future Academy',
-    title: 'A Place of Excellence',
-    subtitle: 'Where education meets inspiration and innovation',
+    title: 'Welcome to Glowing Future Academy',
+    subtitle: 'A nurturing home for every young learner',
   },
   {
-    url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&h=600&q=80',
-    tag: 'Glow With Pride',
-    title: 'Celebrate Every Achievement',
-    subtitle: 'Building confidence, character and capability',
+    url: 'https://images.unsplash.com/photo-1588072432836-e10032774350?w=1200&auto=format&fit=crop&h=600&q=80',
+    tag: 'Our Classrooms',
+    title: 'Nurturing Young Minds',
+    subtitle: 'Hands-on learning in a warm and caring environment',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1594608661623-aa0bd3a69799?w=1200&auto=format&fit=crop&h=600&q=80',
+    tag: 'Primary Education',
+    title: 'Excellence in Primary Education',
+    subtitle: 'Building strong foundations for lifelong success',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1601751818941-571144562843?w=1200&auto=format&fit=crop&h=600&q=80',
+    tag: 'Our Values',
+    title: 'Strong, Resilient & Bright',
+    subtitle: 'Every child deserves the chance to shine',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1516627145497-ae6968895b40?w=1200&auto=format&fit=crop&h=600&q=80',
+    tag: 'School Motto',
+    title: 'Glow With Pride',
+    subtitle: 'Together we grow, together we glow',
   },
 ];
 
