@@ -47,6 +47,7 @@ const slides = [
 
 export default function LandingPage() {
   const [visible, setVisible] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -54,6 +55,12 @@ export default function LandingPage() {
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 80);
     return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
@@ -124,6 +131,11 @@ export default function LandingPage() {
           background: rgba(212,175,55,0.12) !important;
           color: #F5C842 !important;
         }
+        .gfa-navbar {
+          transition: background 0.35s ease, backdrop-filter 0.35s ease,
+                      border-color 0.35s ease, box-shadow 0.35s ease,
+                      padding 0.35s ease;
+        }
 
         /* Slideshow */
         @keyframes slideTextIn {
@@ -156,6 +168,45 @@ export default function LandingPage() {
         }
       `}</style>
 
+      {/* ─────────── STICKY NAV ─────────── */}
+      <nav className="gfa-navbar" style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: scrolled ? '0.75rem 1.75rem' : '1.1rem 1.75rem',
+        background: scrolled ? 'rgba(18,16,12,0.92)' : 'rgba(20,20,20,0.45)',
+        backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'blur(6px)',
+        WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'blur(6px)',
+        borderBottom: scrolled
+          ? '1px solid rgba(212,175,55,0.2)'
+          : '1px solid rgba(212,175,55,0.08)',
+        boxShadow: scrolled ? '0 4px 32px rgba(0,0,0,0.4)' : 'none',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div style={{
+            width: '34px', height: '34px', borderRadius: '50%', overflow: 'hidden',
+            border: '2px solid rgba(212,175,55,0.5)', flexShrink: 0,
+          }}>
+            <img src="/images/gfa-logo.jpeg" alt="GFA" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          <span style={{ color: '#fff', fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.02em' }}>
+            GFA — Glowing Future Academy
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <Link to="/parent-portal" className="gfa-nav-link" style={{
+            color: '#D4AF37', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none',
+            padding: '0.45rem 0.9rem', borderRadius: '0.5rem',
+            border: '1px solid rgba(212,175,55,0.3)',
+          }}>Parent Portal</Link>
+          <Link to="/login" className="gfa-btn-gold" style={{
+            background: 'linear-gradient(135deg, #D4AF37, #F5C842)',
+            color: '#2c2c2c', fontWeight: 800, fontSize: '0.8rem', textDecoration: 'none',
+            padding: '0.45rem 1rem', borderRadius: '0.5rem',
+            boxShadow: '0 3px 12px rgba(212,175,55,0.35)',
+          }}>Admin Login</Link>
+        </div>
+      </nav>
+
       {/* ─────────── HERO ─────────── */}
       <section style={{
         background: 'linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 55%, #3a3a3a 100%)',
@@ -183,42 +234,6 @@ export default function LandingPage() {
           animationDelay: '1.8s',
           pointerEvents: 'none',
         }} />
-
-        {/* Top nav */}
-        <nav style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '1.1rem 1.75rem',
-          background: 'rgba(20,20,20,0.65)',
-          backdropFilter: 'blur(10px)',
-          borderBottom: '1px solid rgba(212,175,55,0.12)',
-          zIndex: 10,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div style={{
-              width: '34px', height: '34px', borderRadius: '50%', overflow: 'hidden',
-              border: '2px solid rgba(212,175,55,0.5)', flexShrink: 0,
-            }}>
-              <img src="/images/gfa-logo.jpeg" alt="GFA" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
-            <span style={{ color: '#fff', fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.02em' }}>
-              GFA — Glowing Future Academy
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <Link to="/parent-portal" className="gfa-nav-link" style={{
-              color: '#D4AF37', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none',
-              padding: '0.45rem 0.9rem', borderRadius: '0.5rem',
-              border: '1px solid rgba(212,175,55,0.3)',
-            }}>Parent Portal</Link>
-            <Link to="/login" className="gfa-btn-gold" style={{
-              background: 'linear-gradient(135deg, #D4AF37, #F5C842)',
-              color: '#2c2c2c', fontWeight: 800, fontSize: '0.8rem', textDecoration: 'none',
-              padding: '0.45rem 1rem', borderRadius: '0.5rem',
-              boxShadow: '0 3px 12px rgba(212,175,55,0.35)',
-            }}>Admin Login</Link>
-          </div>
-        </nav>
 
         {/* Hero body */}
         <div style={{ textAlign: 'center', maxWidth: '720px', width: '100%', position: 'relative', zIndex: 1 }}>
