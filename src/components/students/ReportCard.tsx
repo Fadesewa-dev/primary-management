@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { ACADEMIC_TERMS, CURRENT_ACADEMIC_YEAR } from '../../lib/constants';
+import { ACADEMIC_TERMS } from '../../lib/constants';
+import { useAcademicYear } from '../../hooks/useAcademicYear';
 
 interface Student {
   id: string;
@@ -40,13 +41,19 @@ const ordinal = (n: number) => {
 
 export default function ReportCard({ student, onClose }: ReportCardProps) {
   const [term, setTerm] = useState<string>(ACADEMIC_TERMS[0]);
-  const [academicYear, setAcademicYear] = useState(CURRENT_ACADEMIC_YEAR);
+  const [academicYear, setAcademicYear] = useState('');
   const [grades, setGrades] = useState<GradeRecord[]>([]);
   const [attendance, setAttendance] = useState({ total: 0, present: 0 });
   const [position, setPosition] = useState('—');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { fetchReportData(); }, [term, academicYear]);
+  const { currentYear, allYears } = useAcademicYear();
+
+  useEffect(() => {
+    if (currentYear && !academicYear) setAcademicYear(currentYear);
+  }, [currentYear]);
+
+  useEffect(() => { if (academicYear) fetchReportData(); }, [term, academicYear]);
 
   const fetchReportData = async () => {
     setLoading(true);
@@ -142,8 +149,14 @@ export default function ReportCard({ student, onClose }: ReportCardProps) {
             </select>
             <select value={academicYear} onChange={(e) => setAcademicYear(e.target.value)}
               className="text-xs border border-gray-600 bg-gray-700 text-white rounded-lg px-2 py-1.5">
-              <option value="2024-2025">2024-2025</option>
-              <option value="2025-2026">2025-2026</option>
+              {allYears.length > 0
+                ? allYears.map((y) => (
+                    <option key={y.id} value={y.year_name}>{y.year_name}</option>
+                  ))
+                : academicYear
+                  ? <option value={academicYear}>{academicYear}</option>
+                  : null
+              }
             </select>
             <button onClick={() => window.print()}
               className="px-3 py-1.5 rounded-lg text-xs font-bold"

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { CURRENT_ACADEMIC_YEAR } from '../../lib/constants';
+import { useAcademicYear } from '../../hooks/useAcademicYear';
 
 interface Class {
   id: string;
@@ -29,11 +29,12 @@ const emptyForm = {
   grade: '',
   section: '',
   teacher_id: '',
-  academic_year: CURRENT_ACADEMIC_YEAR,
+  academic_year: '',
   capacity: 35,
 };
 
 export default function ClassesPage() {
+  const { currentYear } = useAcademicYear();
   const [classes, setClasses] = useState<Class[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
@@ -96,6 +97,7 @@ export default function ClassesPage() {
       ...emptyForm,
       grade: gradeLevels[0]?.name || '',
       section: sections[0]?.name || '',
+      academic_year: currentYear,
     });
     setError('');
     setShowModal(true);

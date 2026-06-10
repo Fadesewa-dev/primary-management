@@ -46,7 +46,6 @@ export const SUBJECTS = [
   'Music',
 ] as const;
 
-export const CURRENT_ACADEMIC_YEAR = '2024-2025';
 
 export const ATTENDANCE_STATUSES = [
   'present',

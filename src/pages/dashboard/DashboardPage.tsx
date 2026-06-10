@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { formatDate } from '../../utils';
+import { useAcademicYear } from '../../hooks/useAcademicYear';
 
 interface Stats {
   students: number;
@@ -80,6 +81,7 @@ const statCards = (stats: Stats, feePercentage: number) => [
 ];
 
 export default function DashboardPage() {
+  const { currentYear } = useAcademicYear();
   const [stats, setStats] = useState<Stats>({
     students: 0, teachers: 0, classes: 0, totalFees: 0, collectedFees: 0,
   });
@@ -173,7 +175,7 @@ export default function DashboardPage() {
             {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
           <p className="text-xs mt-1" style={{ color: 'rgba(212,175,55,0.6)' }}>
-            Academic Year 2024 — 2025 · First Term
+            {currentYear ? `Academic Year ${currentYear}` : 'Academic Year —'}
           </p>
         </div>
 
@@ -232,7 +234,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-bold text-gray-800">Fee Collection Progress</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Academic Year 2024-2025</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {currentYear ? `Academic Year ${currentYear}` : 'Academic Year —'}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-sm font-bold text-gray-800">D {stats.collectedFees.toLocaleString()}</p>

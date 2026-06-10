@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { ACADEMIC_TERMS, CURRENT_ACADEMIC_YEAR, SUBJECTS } from '../../lib/constants';
+import { ACADEMIC_TERMS, SUBJECTS } from '../../lib/constants';
+import { useAcademicYear } from '../../hooks/useAcademicYear';
 
 interface Grade {
   id: string;
@@ -31,7 +32,7 @@ const emptyForm = {
   ca2_score: 0,
   exam_score: 0,
   term: 'First Term',
-  academic_year: CURRENT_ACADEMIC_YEAR,
+  academic_year: '',
   date: new Date().toISOString().split('T')[0],
   teacher_remark: '',
 };
@@ -55,6 +56,7 @@ const inputClass = "w-full border-2 border-gray-100 rounded-xl px-3 py-2.5 focus
 const inputStyle = { fontSize: '16px' };
 
 export default function GradesPage() {
+  const { currentYear } = useAcademicYear();
   const [grades, setGrades] = useState<Grade[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
@@ -110,7 +112,7 @@ export default function GradesPage() {
   };
 
   const openModal = () => {
-    setForm(emptyForm);
+    setForm({ ...emptyForm, academic_year: currentYear });
     setFilteredStudents(allStudents);
     setError('');
     setShowModal(true);

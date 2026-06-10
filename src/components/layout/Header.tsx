@@ -1,4 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext';
+import { useAcademicYear } from '../../hooks/useAcademicYear';
 
 type HeaderProps = {
   sidebarOpen: boolean;
@@ -7,6 +8,7 @@ type HeaderProps = {
 
 export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const { user } = useAuth();
+  const { currentYear } = useAcademicYear();
 
   return (
     <header
@@ -36,7 +38,9 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
             year: 'numeric',
           })}
         </p>
-        <p className="text-xs text-gray-400">Academic Year 2025 — 2026</p>
+        <p className="text-xs text-gray-400">
+          {currentYear ? `Academic Year ${currentYear}` : 'Loading...'}
+        </p>
       </div>
 
       {/* Right - User Info */}

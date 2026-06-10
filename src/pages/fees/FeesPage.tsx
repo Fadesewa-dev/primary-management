@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { ACADEMIC_TERMS, CURRENT_ACADEMIC_YEAR } from '../../lib/constants';
+import { ACADEMIC_TERMS } from '../../lib/constants';
+import { useAcademicYear } from '../../hooks/useAcademicYear';
 import { formatCurrency, formatDate } from '../../utils';
 import FeeReceipt from '../../components/fees/FeeReceipt';
 import FeeInvoice from '../../components/fees/FeeInvoice';
@@ -47,7 +48,7 @@ const emptyForm = {
   paid: 0,
   due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   term: 'First Term',
-  academic_year: CURRENT_ACADEMIC_YEAR,
+  academic_year: '',
 };
 
 const feeTypes = [
@@ -67,6 +68,7 @@ const inputClass = "w-full border-2 border-gray-100 rounded-xl px-3 py-2.5 focus
 const inputStyle = { fontSize: '16px' };
 
 export default function FeesPage() {
+  const { currentYear } = useAcademicYear();
   const [fees, setFees] = useState<Fee[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
@@ -149,7 +151,7 @@ export default function FeesPage() {
       }
     } else {
       setEditingFee(null);
-      setForm(emptyForm);
+      setForm({ ...emptyForm, academic_year: currentYear });
       setFilteredStudents(allStudents);
     }
     setError('');
