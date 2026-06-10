@@ -14,7 +14,7 @@ interface Grade {
   term: string;
   academic_year: string;
   date: string;
-  teacher_remarks?: string;
+  teacher_remark?: string;
   students?: { first_name: string; last_name: string; student_id: string };
   classes?: { name: string };
 }
@@ -32,7 +32,7 @@ const emptyForm = {
   term: 'First Term',
   academic_year: CURRENT_ACADEMIC_YEAR,
   date: new Date().toISOString().split('T')[0],
-  teacher_remarks: '',
+  teacher_remark: '',
 };
 
 const getPSMSGrade = (total: number) => {
@@ -145,7 +145,7 @@ export default function GradesPage() {
         term: form.term,
         academic_year: form.academic_year,
         date: form.date,
-        teacher_remarks: form.teacher_remarks || null,
+        teacher_remark: form.teacher_remark || null,
       });
       if (error) throw error;
       await fetchGrades();
@@ -336,8 +336,8 @@ export default function GradesPage() {
                         {new Date(grade.date).toLocaleDateString('en-GB')}
                       </td>
                       <td className="px-4 py-3.5 text-sm text-gray-500 max-w-[160px]">
-                        {grade.teacher_remarks ? (
-                          <span className="truncate block" title={grade.teacher_remarks}>{grade.teacher_remarks}</span>
+                        {grade.teacher_remark ? (
+                          <span className="truncate block" title={grade.teacher_remark}>{grade.teacher_remark}</span>
                         ) : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-4 py-3.5">
@@ -467,8 +467,8 @@ export default function GradesPage() {
 
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Teacher Remarks</label>
-                <textarea value={form.teacher_remarks}
-                  onChange={(e) => setForm({ ...form, teacher_remarks: e.target.value })}
+                <textarea value={form.teacher_remark}
+                  onChange={(e) => setForm({ ...form, teacher_remark: e.target.value })}
                   placeholder="Optional remarks about student performance..."
                   rows={2}
                   className={inputClass + ' resize-y'} style={inputStyle} />
