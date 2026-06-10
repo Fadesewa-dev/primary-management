@@ -26,19 +26,19 @@ const slides = [
     subtitle: 'Hands-on learning in a warm and caring environment',
   },
   {
-    url: 'https://images.unsplash.com/photo-1594608661623-aa0bd3a69799?w=1200&auto=format&fit=crop&h=600&q=80',
+    url: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1200&auto=format&fit=crop&h=600&q=80',
     tag: 'Primary Education',
     title: 'Excellence in Primary Education',
     subtitle: 'Building strong foundations for lifelong success',
   },
   {
-    url: 'https://images.unsplash.com/photo-1601751818941-571144562843?w=1200&auto=format&fit=crop&h=600&q=80',
+    url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&auto=format&fit=crop&h=600&q=80',
     tag: 'Our Values',
     title: 'Strong, Resilient & Bright',
     subtitle: 'Every child deserves the chance to shine',
   },
   {
-    url: 'https://images.unsplash.com/photo-1516627145497-ae6968895b40?w=1200&auto=format&fit=crop&h=600&q=80',
+    url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&auto=format&fit=crop&h=600&q=80',
     tag: 'School Motto',
     title: 'Glow With Pride',
     subtitle: 'Together we grow, together we glow',
